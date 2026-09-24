@@ -14,7 +14,8 @@ import { useEffect, useRef } from 'react';
 
 const FPS = 10;
 const FRAME_COUNT = 100;
-const FRAME_PATH = (i: number) => `/hero-frames/frame-${String(i).padStart(3, '0')}.jpg`;
+const basePath = process.env.NODE_ENV === 'production' ? '/portfolio' : '';
+const FRAME_PATH = (i: number) => `${basePath}/hero-frames/frame-${String(i).padStart(3, '0')}.jpg`;
 
 // Peak-pose timestamps (seconds), measured from the source video
 const T = { left: 1.7, center: 3.3, right: 5.0, center2: 6.2, up: 7.3, down: 9.0 };
