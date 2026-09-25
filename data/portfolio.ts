@@ -4,8 +4,12 @@ export type FeaturedProject = {
   title: string;
   eyebrow: string;
   description: string;
-  challenge: string;
-  decisions: string[];
+  problem: string;
+  userSegments: { title: string; description: string }[];
+  whatWeDid: string[];
+  howWeBuilt: string[];
+  outcome: string;
+  impact: string;
   proof: { value: string; label: string }[];
   stack: string[];
   repo: string;
@@ -28,16 +32,39 @@ export const featuredProjects: FeaturedProject[] = [
     id: "forecast-lab",
     index: "01",
     title: "GitHub Forecast Lab",
-    eyebrow: "AI/ML · Developer analytics",
+    eyebrow: "AI and ML · Developer analytics",
     description:
       "An interactive product that turns repository activity into visual trends and forward-looking signals for engineering teams.",
-    challenge:
-      "GitHub exposes plenty of activity data, but raw counts do not tell a team what is changing or what may happen next.",
-    decisions: [
-      "Combined descriptive analytics and forecasting in one experience.",
-      "Separated GitHub data retrieval from the forecasting service so each part could scale independently.",
-      "Compared LSTM, Prophet, and statistical approaches instead of hiding the model choice.",
+    problem:
+      "GitHub contains rich activity data, but raw counts do not explain whether delivery health is improving, where work is accumulating, or what teams should expect next.",
+    userSegments: [
+      {
+        title: "Engineering leaders",
+        description: "Need an early view of delivery risk, workload, and contributor trends.",
+      },
+      {
+        title: "Repository maintainers",
+        description: "Need to understand issue flow, pull request activity, and release patterns.",
+      },
+      {
+        title: "Analysts and contributors",
+        description: "Need a visual way to compare historical behavior with forecasted activity.",
+      },
     ],
+    whatWeDid: [
+      "Designed a dashboard that combines descriptive analytics with forward-looking forecasts.",
+      "Mapped GitHub activity into product signals such as issues, pull requests, commits, contributors, branches, and releases.",
+      "Made model outputs visible so users could compare approaches instead of receiving one unexplained prediction.",
+    ],
+    howWeBuilt: [
+      "Used React for interactive exploration and Flask for GitHub API retrieval and data preparation.",
+      "Separated forecasting into an independent service using LSTM, Prophet, and statistical models.",
+      "Containerized the services with Docker and designed deployment around Google Cloud.",
+    ],
+    outcome:
+      "The result is a working analytics experience that lets a user move from repository data to historical patterns and six forecasted signals in one flow.",
+    impact:
+      "The product reframes repository data as a planning tool, helping technical teams discuss capacity and delivery risk with evidence instead of isolated counts.",
     proof: [
       { value: "6", label: "signals forecast" },
       { value: "3", label: "model families" },
@@ -52,16 +79,39 @@ export const featuredProjects: FeaturedProject[] = [
     id: "service-ai",
     index: "02",
     title: "Retail Service AI",
-    eyebrow: "GenAI · Concept prototype",
+    eyebrow: "Generative AI · Concept prototype",
     description:
-      "A working customer-service concept that explores conversational support, product guidance, and image-assisted issue intake.",
-    challenge:
-      "Customers repeat order, return, product, and damage questions while support teams manually gather context.",
-    decisions: [
-      "Started with a conversational interface to validate the support experience quickly.",
-      "Explored separate modules for recommendations, order context, and visual damage intake.",
-      "Built the prototype directly so stakeholders could react to behavior, not a static slide deck.",
+      "A working customer service concept that explores conversational support, product guidance, and image-assisted issue intake.",
+    problem:
+      "Retail customers repeatedly ask about orders, returns, products, and damaged items, while support teams spend time collecting the same context before they can help.",
+    userSegments: [
+      {
+        title: "Order-focused shoppers",
+        description: "Want quick status updates and next steps without searching multiple screens.",
+      },
+      {
+        title: "Product explorers",
+        description: "Want guidance that narrows choices based on an expressed need.",
+      },
+      {
+        title: "Customers reporting damage",
+        description: "Need a simple way to explain an issue and provide visual evidence.",
+      },
     ],
+    whatWeDid: [
+      "Created a conversational entry point that can handle several common service intents.",
+      "Separated the concept into product recommendations, order context, and image-assisted damage intake.",
+      "Built the interaction directly so the concept could be evaluated through behavior rather than static mockups.",
+    ],
+    howWeBuilt: [
+      "Used React to prototype the end-to-end interaction and OpenAI models for conversational responses.",
+      "Structured each service journey as a focused module so additional workflows could be added independently.",
+      "Explored image input for damage intake to reduce the amount of information customers need to type.",
+    ],
+    outcome:
+      "The result is a working prototype with three service journeys and a shared conversational interface that demonstrates how context can remain within one experience.",
+    impact:
+      "The concept shows how support intake could become faster and more consistent while giving customers a clearer path from question to resolution.",
     proof: [
       { value: "1", label: "working prototype" },
       { value: "3", label: "service journeys" },
@@ -79,13 +129,36 @@ export const featuredProjects: FeaturedProject[] = [
     eyebrow: "Fintech UX · Full-stack concept",
     description:
       "An end-to-end insurance experience spanning discovery, guided data collection, validation, quote review, and account management.",
-    challenge:
-      "Insurance quotes require a lot of personal and risk information, which makes clarity, progress, and validation essential.",
-    decisions: [
-      "Split complex input into guided steps instead of one intimidating form.",
-      "Designed distinct auto and health journeys while keeping a shared account experience.",
-      "Added validation, review, dashboard, profile, and quote-detail states to complete the product loop.",
+    problem:
+      "Insurance quotes require extensive personal and risk information. Long forms create uncertainty about progress, make errors harder to recover from, and can discourage completion.",
+    userSegments: [
+      {
+        title: "First-time shoppers",
+        description: "Need plain guidance, visible progress, and confidence about what information is required.",
+      },
+      {
+        title: "Auto and health customers",
+        description: "Need different questions and coverage choices within a consistent product experience.",
+      },
+      {
+        title: "Returning account users",
+        description: "Need to review quotes, manage a profile, and continue from previously entered information.",
+      },
     ],
+    whatWeDid: [
+      "Split a complex quote request into guided stages with review and confirmation states.",
+      "Designed separate auto and health journeys while preserving a shared account and navigation model.",
+      "Completed the broader product loop with login, registration, dashboard, profile, and quote detail screens.",
+    ],
+    howWeBuilt: [
+      "Used React Router to model the product journey across discovery, quoting, account, and detail views.",
+      "Used Formik and Yup to manage multi-step form state and validation feedback.",
+      "Used Material UI to create consistent form controls, progress indicators, review cards, and responsive layouts.",
+    ],
+    outcome:
+      "The result is an end-to-end prototype with two quote journeys, five guided stages, and the supporting screens needed to continue after form submission.",
+    impact:
+      "The experience reduces cognitive load, makes progress visible, and gives users a clearer sense of control during a high-information financial decision.",
     proof: [
       { value: "2", label: "quote journeys" },
       { value: "5", label: "guided steps" },
@@ -120,7 +193,7 @@ export const productStories: ProductStory[] = [
     label: "Experimentation",
     title: "A registration flow tested with real schools, not opinions",
     problem:
-      "A single-sitting K–12 registration form created friction for staff and families completing lengthy enrollment workflows.",
+      "A single-sitting K-12 registration form created friction for staff and families completing lengthy enrollment workflows.",
     move:
       "Designed an A/B test against a multi-section, save-and-resume experience and evaluated behavior across more than 350 students and 15 schools.",
     result:

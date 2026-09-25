@@ -113,7 +113,7 @@ function ProjectModal({
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <article
-        className={`project-modal accent-${project.accent}`}
+        className={`project-modal case-study-modal accent-${project.accent}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={`${project.id}-modal-title`}
@@ -127,15 +127,44 @@ function ProjectModal({
         <h3 id={`${project.id}-modal-title`}>{project.title}</h3>
         <p className="modal-lede">{project.description}</p>
 
-        <div className="modal-grid">
+        <div className="case-study-summary">
           <section>
-            <span className="modal-label">The problem</span>
-            <p>{project.challenge}</p>
+            <span className="modal-label">Problem</span>
+            <p>{project.problem}</p>
           </section>
           <section>
-            <span className="modal-label">Product decisions</span>
+            <span className="modal-label">Outcome</span>
+            <p>{project.outcome}</p>
+          </section>
+          <section>
+            <span className="modal-label">Impact</span>
+            <p>{project.impact}</p>
+          </section>
+        </div>
+
+        <section className="case-study-segments">
+          <span className="modal-label">User segments</span>
+          <div>
+            {project.userSegments.map((segment) => (
+              <article key={segment.title}>
+                <strong>{segment.title}</strong>
+                <p>{segment.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <div className="case-study-method">
+          <section>
+            <span className="modal-label">What we did</span>
             <ol>
-              {project.decisions.map((decision) => <li key={decision}>{decision}</li>)}
+              {project.whatWeDid.map((item) => <li key={item}>{item}</li>)}
+            </ol>
+          </section>
+          <section>
+            <span className="modal-label">How we built it</span>
+            <ol>
+              {project.howWeBuilt.map((item) => <li key={item}>{item}</li>)}
             </ol>
           </section>
         </div>
@@ -331,11 +360,6 @@ export default function Portfolio() {
           </div>
         </div>
 
-        <div className="hero-interaction-note" aria-hidden="true">
-          <span className="mouse-shape"><i /></span>
-          Move around. She&apos;s paying attention.
-        </div>
-
         <a href="#product-loop" className="hero-scroll" aria-label="Scroll to product approach">
           <span>Scroll to explore</span><i>↓</i>
         </a>
@@ -365,7 +389,7 @@ export default function Portfolio() {
           ))}
         </div>
         <div className="loop-connector" aria-hidden="true"><i /></div>
-        <div className="lens-note lens-note-loop" aria-hidden="true"><span>02</span> Each capability is tied to a behavior and proof—not a keyword cloud.</div>
+        <div className="lens-note lens-note-loop" aria-hidden="true"><span>02</span> Each capability is tied to a behavior and proof, not a keyword cloud.</div>
       </section>
 
       <section id="work" className="work-section section-pad">
@@ -453,8 +477,8 @@ export default function Portfolio() {
       <section className="experiments-section section-pad">
         <SectionHeading
           eyebrow="More experiments"
-          title="Smaller builds. Different muscles."
-          copy="Not every project needs a full case study, but each one adds range to how I think and build."
+          title="Focused builds. Different product muscles."
+          copy="Each project explores a distinct user need, workflow, and technical decision, adding range to how I understand and build products."
         />
 
         <div className="supporting-grid">
@@ -489,29 +513,35 @@ export default function Portfolio() {
               “I like talking to people about what is not working. Because I build, I do not have to stop at a deck or wait for someone else to make the prototype.”
             </blockquote>
             <p>
-              My path started in technology consulting at Tata Consultancy Services in India, continued through a Master of Computer Science at Illinois Institute of Technology, and now brings product strategy, AI prototypes, cloud platforms, and enterprise delivery together in Chicago. That journey lets me translate between the person experiencing the problem and the team building the solution.
+              I now bring product strategy, AI prototypes, enterprise platforms, and technical delivery together in Chicago. My path includes technology consulting in India, a Master of Computer Science at Illinois Institute of Technology, and an earlier foundation in civil engineering. That range helps me translate between the person experiencing the problem and the team building the solution.
             </p>
             <a href="mailto:pvshirsat01@gmail.com" className="primary-button">Talk product with me <Arrow /></a>
           </div>
 
-          <div className="experience-stack reveal">
-            <article>
-              <span>2021 — 2023</span>
-              <h3>Cloud Engineer / Technical Program Lead</h3>
-              <p>Tata Consultancy Services · India</p>
-              <small>Cloud migration roadmaps, Azure and AKS, observability, cross-functional delivery, 99.99% reliability.</small>
+          <div className="experience-stack" aria-label="Experience and education timeline">
+            <article className="experience-card reveal" style={{ "--experience-delay": "0ms" } as CSSProperties}>
+              <span>2025 to present</span>
+              <h3>Technology Consultant, Product &amp; Platforms</h3>
+              <p>Servio Consulting · Chicago</p>
+              <small>Product strategy, AI and enterprise platforms, stakeholder alignment, UAT, analytics, and cross-functional delivery.</small>
             </article>
-            <article>
-              <span>2023 — 2025</span>
+            <article className="experience-card reveal" style={{ "--experience-delay": "90ms" } as CSSProperties}>
+              <span>2023 to 2025</span>
               <h3>Master of Computer Science</h3>
               <p>Illinois Institute of Technology · Chicago</p>
               <small>Software project management, data systems, modeling, analytics, and technical product foundations.</small>
             </article>
-            <article>
-              <span>2025 — now</span>
-              <h3>Technology Consultant — Product &amp; Platforms</h3>
-              <p>Servio Consulting · Chicago</p>
-              <small>Product strategy, AI and enterprise platforms, stakeholder alignment, UAT, analytics, and cross-functional delivery.</small>
+            <article className="experience-card reveal" style={{ "--experience-delay": "180ms" } as CSSProperties}>
+              <span>2021 to 2023</span>
+              <h3>Cloud Engineer / Technical Program Lead</h3>
+              <p>Tata Consultancy Services · India</p>
+              <small>Cloud migration roadmaps, Azure and AKS, observability, cross-functional delivery, and 99.99% reliability.</small>
+            </article>
+            <article className="experience-card is-foundation reveal" style={{ "--experience-delay": "270ms" } as CSSProperties}>
+              <span>Aug 2017 to May 2021</span>
+              <h3>Bachelor of Technology in Civil Engineering</h3>
+              <p>Vishwakarma Institute of Information Technology · Pune, India</p>
+              <small>An engineering foundation in structured problem solving, systems thinking, planning, and working within real-world constraints.</small>
             </article>
           </div>
         </div>
