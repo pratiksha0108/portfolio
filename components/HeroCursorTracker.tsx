@@ -29,13 +29,16 @@ export default function HeroCursorTracker() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const shell = shellRef.current;
-    const canvas = canvasRef.current;
-    if (!shell || !canvas) return;
+    const shellNode = shellRef.current;
+    const canvasNode = canvasRef.current;
+    if (!shellNode || !canvasNode) return;
 
-    const context = canvas.getContext("2d", { alpha: false });
-    if (!context) return;
+    const canvasContext = canvasNode.getContext("2d", { alpha: false });
+    if (!canvasContext) return;
 
+    const shell: HTMLDivElement = shellNode;
+    const stage: HTMLCanvasElement = canvasNode;
+    const context: CanvasRenderingContext2D = canvasContext;
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
@@ -55,7 +58,6 @@ export default function HeroCursorTracker() {
     let lastPointerAt = 0;
     let destroyed = false;
     let imagesReady = false;
-
     let targetX = 0;
     let targetY = 0;
     let displayX = 0;
@@ -63,32 +65,27 @@ export default function HeroCursorTracker() {
     let activeAxis: "horizontal" | "vertical" = "horizontal";
     let transitionFromTime = TIMELINE.centerHorizontal;
     let transitionStartedAt = -1;
+    let renderFrame: FrameRequestCallback = () => undefined;
 
-    const images: HTMLImageElement[] = Array.from(
-      { length: FRAME_COUNT },
-      () => {
-        const image = new Image();
-        image.decoding = "async";
-        return image;
-      },
-    );
+    const images = Array.from({ length: FRAME_COUNT }, () => {
+      const image = new Image();
+      image.decoding = "async";
+      return image;
+    });
     const loaded = Array.from({ length: FRAME_COUNT }, () => false);
 
     const scheduleRender = () => {
-      if (rafId === null) rafId = window.requestAnimationFrame(render);
+      if (rafId === null) rafId = window.requestAnimationFrame(renderFrame);
     };
 
     const resize = () => {
       bounds = shell.getBoundingClientRect();
       viewWidth = Math.max(1, Math.round(bounds.width));
       viewHeight = Math.max(1, Math.round(bounds.height));
-
-      // A 1x backing canvas is substantially lighter than a retina-sized canvas
-      // and is visually sufficient for a full-bleed photographic hero.
-      canvas.width = viewWidth;
-      canvas.height = viewHeight;
-      canvas.style.width = `${viewWidth}px`;
-      canvas.style.height = `${viewHeight}px`;
+      stage.width = viewWidth;
+      stage.height = viewHeight;
+      stage.style.width = `${viewWidth}px`;
+      stage.style.height = `${viewHeight}px`;
       scheduleRender();
     };
 
@@ -99,15 +96,16 @@ export default function HeroCursorTracker() {
       const zoom = desktop ? 1.085 : viewWidth >= 600 ? 1.045 : 1.02;
       const scale =
         Math.max(
-          canvas.width / image.naturalWidth,
-          canvas.height / image.naturalHeight,
+          stage.width / image.naturalWidth,
+          stage.height / image.naturalHeight,
         ) * zoom;
       const drawWidth = image.naturalWidth * scale;
       const drawHeight = image.naturalHeight * scale;
-      const centeredX = (canvas.width - drawWidth) / 2;
-      const horizontalShift = canvas.width * (desktop ? 0.135 : viewWidth >= 600 ? 0.07 : 0.02);
-      const drawX = clamp(centeredX + horizontalShift, canvas.width - drawWidth, 0);
-      const drawY = (canvas.height - drawHeight) / 2;
+      const centeredX = (stage.width - drawWidth) / 2;
+      const horizontalShift =
+        stage.width * (desktop ? 0.135 : viewWidth >= 600 ? 0.07 : 0.02);
+      const drawX = clamp(centeredX + horizontalShift, stage.width - drawWidth, 0);
+      const drawY = (stage.height - drawHeight) / 2;
 
       context.globalAlpha = alpha;
       context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
@@ -158,7 +156,7 @@ export default function HeroCursorTracker() {
             (TIMELINE.down - TIMELINE.centerVertical) * magnitude;
     };
 
-    function render(now: number) {
+    renderFrame = (now: number) => {
       rafId = null;
       if (!imagesReady) return;
 
@@ -170,7 +168,6 @@ export default function HeroCursorTracker() {
       const delta = lastMotionAt ? Math.min(48, now - lastMotionAt) : 16.7;
       lastMotionAt = now;
       const easing = 1 - Math.exp(-delta / 82);
-
       displayX += (targetX - displayX) * easing;
       displayY += (targetY - displayY) * easing;
 
@@ -179,13 +176,11 @@ export default function HeroCursorTracker() {
       const totalMagnitude = horizontalMagnitude + verticalMagnitude;
       const previousAxis = activeAxis;
 
-      if (totalMagnitude < 0.025) {
+      if (totalMagnitude < 0.025) activeAxis = "horizontal";
+      else if (horizontalMagnitude > verticalMagnitude * 1.18)
         activeAxis = "horizontal";
-      } else if (horizontalMagnitude > verticalMagnitude * 1.18) {
-        activeAxis = "horizontal";
-      } else if (verticalMagnitude > horizontalMagnitude * 1.18) {
+      else if (verticalMagnitude > horizontalMagnitude * 1.18)
         activeAxis = "vertical";
-      }
 
       const horizontalTime = horizontalTimeFor(displayX);
       const verticalTime = verticalTimeFor(displayY);
@@ -200,7 +195,7 @@ export default function HeroCursorTracker() {
 
       context.globalAlpha = 1;
       context.fillStyle = "#090b16";
-      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillRect(0, 0, stage.width, stage.height);
 
       const transitionProgress =
         transitionStartedAt < 0
@@ -222,7 +217,7 @@ export default function HeroCursorTracker() {
         Math.abs(targetY - displayY) > 0.0025 ||
         transitionProgress < 1;
       if (stillMoving) scheduleRender();
-    }
+    };
 
     const setPointerTarget = (event: PointerEvent) => {
       if (!hasFinePointer) return;
