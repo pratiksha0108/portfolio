@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 const FRAME_RATE = 10;
 const FRAME_COUNT = 100;
-const DISPLAY_FPS = 30;
+const DISPLAY_FPS = 45;
 const BASE_PATH = process.env.NODE_ENV === "production" ? "/portfolio" : "";
 const framePath = (index: number) =>
   `${BASE_PATH}/hero-frames/frame-${String(index).padStart(3, "0")}.jpg`;
@@ -23,6 +23,14 @@ const clamp = (value: number, min: number, max: number) =>
 
 const frameAt = (time: number) =>
   clamp(Math.round(time * FRAME_RATE), 0, FRAME_COUNT - 1);
+
+const responsiveAxis = (value: number) => {
+  const absolute = Math.abs(value);
+  if (absolute < 0.004) return 0;
+  const normalized = clamp((absolute - 0.004) / 0.996, 0, 1);
+  const shaped = 0.12 * normalized + 0.88 * Math.pow(normalized, 0.62);
+  return Math.sign(value) * shaped;
+};
 
 export default function HeroCursorTracker() {
   const shellRef = useRef<HTMLDivElement>(null);
@@ -47,7 +55,7 @@ export default function HeroCursorTracker() {
     if (prefersReducedMotion) return;
 
     context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = "medium";
+    context.imageSmoothingQuality = "high";
 
     let bounds = shell.getBoundingClientRect();
     let viewWidth = Math.max(1, Math.round(bounds.width));
@@ -132,14 +140,18 @@ export default function HeroCursorTracker() {
       const lower = nearestLoaded(lowerIndex);
       const upper = nearestLoaded(upperIndex);
 
-      if (lower) drawCover(lower, alpha);
-      if (upper && upper !== lower && blend > 0.015) {
+      if (lower && upper && upper !== lower) {
+        drawCover(lower, alpha * (1 - blend));
         drawCover(upper, alpha * blend);
+      } else if (lower) {
+        drawCover(lower, alpha);
+      } else if (upper) {
+        drawCover(upper, alpha);
       }
     };
 
     const horizontalTimeFor = (x: number) => {
-      const magnitude = Math.pow(Math.abs(x), 1.36);
+      const magnitude = Math.abs(x);
       return x < 0
         ? TIMELINE.centerHorizontal +
             (TIMELINE.left - TIMELINE.centerHorizontal) * magnitude
@@ -148,7 +160,7 @@ export default function HeroCursorTracker() {
     };
 
     const verticalTimeFor = (y: number) => {
-      const magnitude = Math.pow(Math.abs(y), 1.36);
+      const magnitude = Math.abs(y);
       return y < 0
         ? TIMELINE.centerVertical +
             (TIMELINE.up - TIMELINE.centerVertical) * magnitude
@@ -167,20 +179,28 @@ export default function HeroCursorTracker() {
 
       const delta = lastMotionAt ? Math.min(48, now - lastMotionAt) : 16.7;
       lastMotionAt = now;
-      const easing = 1 - Math.exp(-delta / 82);
+      const easing = 1 - Math.exp(-delta / 66);
       displayX += (targetX - displayX) * easing;
       displayY += (targetY - displayY) * easing;
 
-      const horizontalMagnitude = Math.pow(Math.abs(displayX), 1.36);
-      const verticalMagnitude = Math.pow(Math.abs(displayY), 1.36);
+      const horizontalMagnitude = Math.abs(displayX);
+      const verticalMagnitude = Math.abs(displayY);
       const totalMagnitude = horizontalMagnitude + verticalMagnitude;
       const previousAxis = activeAxis;
 
-      if (totalMagnitude < 0.025) activeAxis = "horizontal";
-      else if (horizontalMagnitude > verticalMagnitude * 1.18)
+      if (totalMagnitude < 0.003) {
         activeAxis = "horizontal";
-      else if (verticalMagnitude > horizontalMagnitude * 1.18)
+      } else if (
+        activeAxis === "horizontal" &&
+        verticalMagnitude > horizontalMagnitude * 1.04
+      ) {
         activeAxis = "vertical";
+      } else if (
+        activeAxis === "vertical" &&
+        horizontalMagnitude > verticalMagnitude * 1.04
+      ) {
+        activeAxis = "horizontal";
+      }
 
       const horizontalTime = horizontalTimeFor(displayX);
       const verticalTime = verticalTimeFor(displayY);
@@ -200,10 +220,10 @@ export default function HeroCursorTracker() {
       const transitionProgress =
         transitionStartedAt < 0
           ? 1
-          : clamp((now - transitionStartedAt) / 150, 0, 1);
+          : clamp((now - transitionStartedAt) / 120, 0, 1);
 
       if (transitionProgress < 1) {
-        drawTimeline(transitionFromTime, 1);
+        drawTimeline(transitionFromTime, 1 - transitionProgress);
         drawTimeline(currentTime, transitionProgress);
       } else {
         drawTimeline(currentTime, 1);
@@ -213,24 +233,26 @@ export default function HeroCursorTracker() {
       lastDrawAt = now;
 
       const stillMoving =
-        Math.abs(targetX - displayX) > 0.0025 ||
-        Math.abs(targetY - displayY) > 0.0025 ||
+        Math.abs(targetX - displayX) > 0.0015 ||
+        Math.abs(targetY - displayY) > 0.0015 ||
         transitionProgress < 1;
       if (stillMoving) scheduleRender();
     };
 
     const setPointerTarget = (event: PointerEvent) => {
       if (!hasFinePointer) return;
-      targetX = clamp(
+      const rawX = clamp(
         ((event.clientX - bounds.left) / Math.max(bounds.width, 1)) * 2 - 1,
         -1,
         1,
       );
-      targetY = clamp(
+      const rawY = clamp(
         ((event.clientY - bounds.top) / Math.max(bounds.height, 1)) * 2 - 1,
         -1,
         1,
       );
+      targetX = responsiveAxis(rawX);
+      targetY = responsiveAxis(rawY);
       lastPointerAt = performance.now();
       scheduleRender();
     };
@@ -250,7 +272,7 @@ export default function HeroCursorTracker() {
       if (hasFinePointer && performance.now() - lastPointerAt < 1500) return;
       const progress = clamp(-bounds.top / Math.max(bounds.height, 1), 0, 1);
       targetX = 0;
-      targetY = progress * 0.34;
+      targetY = responsiveAxis(progress * 0.34);
       scheduleRender();
     };
 
@@ -273,7 +295,7 @@ export default function HeroCursorTracker() {
       const anchors = Object.values(TIMELINE).map(frameAt);
       const priority = new Set<number>();
       anchors.forEach((anchor) => {
-        for (let offset = -5; offset <= 5; offset += 1) {
+        for (let offset = -6; offset <= 6; offset += 1) {
           priority.add(clamp(anchor + offset, 0, FRAME_COUNT - 1));
         }
       });
