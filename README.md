@@ -1,14 +1,14 @@
-# Pratiksha Shirsat — Interactive Product Portfolio
+# Pratiksha Shirsat: Interactive Product Portfolio
 
 An experimental portfolio for a developer, consultant, and product builder. The site combines product storytelling with working mini-prototypes instead of presenting a conventional project grid.
 
 ## Experience
 
 - Cursor-responsive cinematic hero built from an original character animation
-- Interactive GitHub forecasting, service-AI, and insurance quote demos
+- Interactive GitHub forecasting, service AI, and insurance quote demos
 - Anonymized enterprise product stories with measurable outcomes
-- Product-lens annotations, command palette, motion, tilt, and responsive states
-- Reduced-motion and mobile fallbacks
+- Product lens annotations, command palette, motion, tilt, and responsive states
+- Reduced motion and mobile fallbacks
 
 ## Stack
 
