@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     "product manager",
     "product builder",
     "developer",
-    "Salesforce consultant",
+    "technology consultant",
     "AI product",
   ],
   authors: [{ name: "Pratiksha Shirsat" }],
