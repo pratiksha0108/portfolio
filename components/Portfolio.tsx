@@ -489,29 +489,29 @@ export default function Portfolio() {
               “I like talking to people about what is not working. Because I build, I do not have to stop at a deck or wait for someone else to make the prototype.”
             </blockquote>
             <p>
-              My background crosses software development, Salesforce consulting, cloud platforms, AI prototypes, and product delivery. That lets me translate between the person experiencing the problem and the team building the solution.
+              My path started in technology consulting at Tata Consultancy Services in India, continued through a Master of Computer Science at Illinois Institute of Technology, and now brings product strategy, AI prototypes, cloud platforms, and enterprise delivery together in Chicago. That journey lets me translate between the person experiencing the problem and the team building the solution.
             </p>
             <a href="mailto:pvshirsat01@gmail.com" className="primary-button">Talk product with me <Arrow /></a>
           </div>
 
           <div className="experience-stack reveal">
             <article>
-              <span>2025 — now</span>
-              <h3>Salesforce Consultant</h3>
-              <p>Servio Consulting · Chicago</p>
-              <small>Product strategy, Agentforce, Education Cloud, Service Cloud, stakeholder alignment, UAT, analytics.</small>
-            </article>
-            <article>
               <span>2021 — 2023</span>
               <h3>Cloud Engineer / Technical Program Lead</h3>
-              <p>Global technology consultancy · India</p>
+              <p>Tata Consultancy Services · India</p>
               <small>Cloud migration roadmaps, Azure and AKS, observability, cross-functional delivery, 99.99% reliability.</small>
             </article>
             <article>
-              <span>2025</span>
+              <span>2023 — 2025</span>
               <h3>Master of Computer Science</h3>
-              <p>Illinois Institute of Technology</p>
+              <p>Illinois Institute of Technology · Chicago</p>
               <small>Software project management, data systems, modeling, analytics, and technical product foundations.</small>
+            </article>
+            <article>
+              <span>2025 — now</span>
+              <h3>Technology Consultant — Product &amp; Platforms</h3>
+              <p>Servio Consulting · Chicago</p>
+              <small>Product strategy, AI and enterprise platforms, stakeholder alignment, UAT, analytics, and cross-functional delivery.</small>
             </article>
           </div>
         </div>
