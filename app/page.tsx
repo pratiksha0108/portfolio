@@ -1,5 +1,5 @@
-import HeroCursorTracker from '@/components/HeroCursorTracker';
+import Portfolio from "@/components/Portfolio";
 
 export default function Home() {
-  return <HeroCursorTracker />;
+  return <Portfolio />;
 }
