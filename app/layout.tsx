@@ -13,17 +13,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pratiksha Shirsat | Developer and Consultant",
-  description: "Portfolio of Pratiksha Shirsat, developer and consultant in Chicago.",
+  title: "Pratiksha Shirsat | Product Builder, Developer & Consultant",
+  description:
+    "Pratiksha Shirsat builds user-centered products across AI, enterprise platforms, data, and cloud systems.",
+  keywords: [
+    "Pratiksha Shirsat",
+    "product manager",
+    "product builder",
+    "developer",
+    "Salesforce consultant",
+    "AI product",
+  ],
+  authors: [{ name: "Pratiksha Shirsat" }],
+  openGraph: {
+    title: "Pratiksha Shirsat | Product Builder",
+    description:
+      "Developer, consultant, and product builder turning conversations into working products.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }
