@@ -521,7 +521,7 @@ export default function Portfolio() {
           <div className="experience-stack" aria-label="Experience and education timeline">
             <article className="experience-card reveal" style={{ "--experience-delay": "0ms" } as CSSProperties}>
               <span>2025 to present</span>
-              <h3>Technology Consultant, Product &amp; Platforms</h3>
+              <h3>Technology Consultant / Developer</h3>
               <p>Servio Consulting · Chicago</p>
               <small>Product strategy, AI and enterprise platforms, stakeholder alignment, UAT, analytics, and cross-functional delivery.</small>
             </article>
@@ -533,11 +533,11 @@ export default function Portfolio() {
             </article>
             <article className="experience-card reveal" style={{ "--experience-delay": "180ms" } as CSSProperties}>
               <span>2021 to 2023</span>
-              <h3>Cloud Engineer / Technical Program Lead</h3>
+              <h3>Cloud Engineer</h3>
               <p>Tata Consultancy Services · India</p>
               <small>Cloud migration roadmaps, Azure and AKS, observability, cross-functional delivery, and 99.99% reliability.</small>
             </article>
-            <article className="experience-card is-foundation reveal" style={{ "--experience-delay": "270ms" } as CSSProperties}>
+            <article className="experience-card reveal" style={{ "--experience-delay": "270ms" } as CSSProperties}>
               <span>Aug 2017 to May 2021</span>
               <h3>Bachelor of Technology in Civil Engineering</h3>
               <p>Vishwakarma Institute of Information Technology · Pune, India</p>
