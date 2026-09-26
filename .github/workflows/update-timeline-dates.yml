@@ -1,0 +1,51 @@
+name: Update portfolio timeline dates
+
+on:
+  push:
+    paths:
+      - .github/workflows/update-timeline-dates.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-dates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update timeline dates
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("components/Portfolio.tsx")
+          content = path.read_text(encoding="utf-8")
+          replacements = {
+              "<span>2025 to present</span>": "<span>Aug 2025 to present</span>",
+              "<span>2023 to 2025</span>": "<span>Aug 2023 to May 2025</span>",
+              "<span>2021 to 2023</span>": "<span>Nov 2021 to Jun 2023</span>",
+          }
+
+          for old, new in replacements.items():
+              if old not in content:
+                  raise SystemExit(f"Expected timeline label not found: {old}")
+              content = content.replace(old, new, 1)
+
+          path.write_text(content, encoding="utf-8")
+          PY
+
+          rm .github/workflows/update-timeline-dates.yml
+
+      - name: Commit changes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/Portfolio.tsx .github/workflows/update-timeline-dates.yml
+          git commit -m "Add months to experience timeline"
+          git push
