@@ -520,19 +520,19 @@ export default function Portfolio() {
 
           <div className="experience-stack" aria-label="Experience and education timeline">
             <article className="experience-card reveal" style={{ "--experience-delay": "0ms" } as CSSProperties}>
-              <span>2025 to present</span>
+              <span>Aug 2025 to present</span>
               <h3>Technology Consultant / Developer</h3>
               <p>Servio Consulting · Chicago</p>
               <small>Product strategy, AI and enterprise platforms, stakeholder alignment, UAT, analytics, and cross-functional delivery.</small>
             </article>
             <article className="experience-card reveal" style={{ "--experience-delay": "90ms" } as CSSProperties}>
-              <span>2023 to 2025</span>
+              <span>Aug 2023 to May 2025</span>
               <h3>Master of Computer Science</h3>
               <p>Illinois Institute of Technology · Chicago</p>
               <small>Software project management, data systems, modeling, analytics, and technical product foundations.</small>
             </article>
             <article className="experience-card reveal" style={{ "--experience-delay": "180ms" } as CSSProperties}>
-              <span>2021 to 2023</span>
+              <span>Nov 2021 to Jun 2023</span>
               <h3>Cloud Engineer</h3>
               <p>Tata Consultancy Services · India</p>
               <small>Cloud migration roadmaps, Azure and AKS, observability, cross-functional delivery, and 99.99% reliability.</small>
