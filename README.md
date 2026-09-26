@@ -7,6 +7,7 @@ An experimental portfolio for a developer, consultant, and product builder. The 
 - Cursor-responsive cinematic hero built from an original character animation
 - Interactive GitHub forecasting, service AI, and insurance quote demos
 - Anonymized enterprise product stories with measurable outcomes
+- Chronological experience and education timeline with month-level dates
 - Product lens annotations, command palette, motion, tilt, and responsive states
 - Reduced motion and mobile fallbacks
 
