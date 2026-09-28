@@ -34,6 +34,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check hero motion and opacity
+        run: npm run test:hero
+
       - name: Build static export
         run: npm run build
 
