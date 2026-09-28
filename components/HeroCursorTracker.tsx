@@ -39,12 +39,16 @@ export default function HeroCursorTracker() {
   useEffect(() => {
     const shellNode = shellRef.current;
     const canvasNode = canvasRef.current;
-    if (!shellNode || !canvasNode) return;
+    const heroNode = shellNode?.closest<HTMLElement>(".hero-section");
+    if (!shellNode || !canvasNode || !heroNode) return;
 
     const canvasContext = canvasNode.getContext("2d", { alpha: false });
     if (!canvasContext) return;
 
     const shell: HTMLDivElement = shellNode;
+    // The foreground copy is a sibling of the media and covers most of it.
+    // Track their common parent so text, links, and empty space all respond.
+    const hero: HTMLElement = heroNode;
     const stage: HTMLCanvasElement = canvasNode;
     const context: CanvasRenderingContext2D = canvasContext;
     const prefersReducedMotion = window.matchMedia(
@@ -52,12 +56,12 @@ export default function HeroCursorTracker() {
     ).matches;
     const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
 
-    if (prefersReducedMotion) return;
+    if (prefersReducedMotion || !hasFinePointer) return;
 
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
 
-    let bounds = shell.getBoundingClientRect();
+    let bounds = hero.getBoundingClientRect();
     let viewWidth = Math.max(1, Math.round(bounds.width));
     let viewHeight = Math.max(1, Math.round(bounds.height));
     let rafId: number | null = null;
@@ -83,11 +87,12 @@ export default function HeroCursorTracker() {
     const loaded = Array.from({ length: FRAME_COUNT }, () => false);
 
     const scheduleRender = () => {
-      if (rafId === null) rafId = window.requestAnimationFrame(renderFrame);
+      if (!destroyed && rafId === null)
+        rafId = window.requestAnimationFrame(renderFrame);
     };
 
     const resize = () => {
-      bounds = shell.getBoundingClientRect();
+      bounds = hero.getBoundingClientRect();
       viewWidth = Math.max(1, Math.round(bounds.width));
       viewHeight = Math.max(1, Math.round(bounds.height));
       stage.width = viewWidth;
@@ -240,7 +245,7 @@ export default function HeroCursorTracker() {
     };
 
     const setPointerTarget = (event: PointerEvent) => {
-      if (!hasFinePointer) return;
+      if (event.pointerType === "touch") return;
       const rawX = clamp(
         ((event.clientX - bounds.left) / Math.max(bounds.width, 1)) * 2 - 1,
         -1,
@@ -258,7 +263,12 @@ export default function HeroCursorTracker() {
     };
 
     const refreshBounds = () => {
-      bounds = shell.getBoundingClientRect();
+      bounds = hero.getBoundingClientRect();
+    };
+
+    const enterHero = (event: PointerEvent) => {
+      refreshBounds();
+      setPointerTarget(event);
     };
 
     const resetPointer = () => {
@@ -325,10 +335,11 @@ export default function HeroCursorTracker() {
     void loadFrames();
 
     const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(shell);
-    shell.addEventListener("pointerenter", refreshBounds);
-    shell.addEventListener("pointermove", setPointerTarget, { passive: true });
-    shell.addEventListener("pointerleave", resetPointer);
+    resizeObserver.observe(hero);
+    hero.addEventListener("pointerenter", enterHero);
+    hero.addEventListener("pointermove", setPointerTarget, { passive: true });
+    hero.addEventListener("pointerleave", resetPointer);
+    hero.addEventListener("pointercancel", resetPointer);
     window.addEventListener("blur", resetPointer);
     window.addEventListener("scroll", onScroll, { passive: true });
 
@@ -336,9 +347,10 @@ export default function HeroCursorTracker() {
       destroyed = true;
       if (rafId !== null) window.cancelAnimationFrame(rafId);
       resizeObserver.disconnect();
-      shell.removeEventListener("pointerenter", refreshBounds);
-      shell.removeEventListener("pointermove", setPointerTarget);
-      shell.removeEventListener("pointerleave", resetPointer);
+      hero.removeEventListener("pointerenter", enterHero);
+      hero.removeEventListener("pointermove", setPointerTarget);
+      hero.removeEventListener("pointerleave", resetPointer);
+      hero.removeEventListener("pointercancel", resetPointer);
       window.removeEventListener("blur", resetPointer);
       window.removeEventListener("scroll", onScroll);
     };
