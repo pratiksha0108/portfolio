@@ -1,355 +1,234 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import {
+  MOTION_FRAMES, NEUTRAL_FRAME, advancePose, clamp, coverRect, damp, opaqueLayers,
+  poseWeights, responsiveAxis, type Pose, type WeightedFrame,
+} from "./hero-motion";
 
-const FRAME_RATE = 10;
-const FRAME_COUNT = 100;
-const DISPLAY_FPS = 45;
 const BASE_PATH = process.env.NODE_ENV === "production" ? "/portfolio" : "";
 const framePath = (index: number) =>
   `${BASE_PATH}/hero-frames/frame-${String(index).padStart(3, "0")}.jpg`;
-
-const TIMELINE = {
-  left: 1.7,
-  centerHorizontal: 3.3,
-  right: 5.0,
-  centerVertical: 6.2,
-  up: 7.3,
-  down: 9.0,
-};
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
-
-const frameAt = (time: number) =>
-  clamp(Math.round(time * FRAME_RATE), 0, FRAME_COUNT - 1);
-
-const responsiveAxis = (value: number) => {
-  const absolute = Math.abs(value);
-  if (absolute < 0.004) return 0;
-  const normalized = clamp((absolute - 0.004) / 0.996, 0, 1);
-  const shaped = 0.12 * normalized + 0.88 * Math.pow(normalized, 0.62);
-  return Math.sign(value) * shaped;
-};
 
 export default function HeroCursorTracker() {
   const shellRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const shellNode = shellRef.current;
-    const canvasNode = canvasRef.current;
-    if (!shellNode || !canvasNode) return;
+    const shell = shellRef.current;
+    const stage = canvasRef.current;
+    const hero = shell?.closest<HTMLElement>(".hero-section");
+    const fallback = shell?.querySelector<HTMLElement>(".hero-fallback-frame");
+    if (!shell || !stage || !hero || !fallback) return;
+    const context = stage.getContext("2d", { alpha: false });
+    if (!context) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const finePointer = window.matchMedia("(pointer: fine)");
 
-    const canvasContext = canvasNode.getContext("2d", { alpha: false });
-    if (!canvasContext) return;
+    const start = () => {
+      let destroyed = false;
+      let bounds = hero.getBoundingClientRect();
+      let visible = bounds.bottom > 0 && bounds.top < window.innerHeight;
+      let rafId: number | null = null;
+      let lastMotionAt = 0;
+      let targetX = 0;
+      let targetY = 0;
+      let displayX = 0;
+      let displayY = 0;
+      let pose: Pose = { axis: "horizontal", position: 0 };
+      let crop = coverRect(bounds.width, bounds.height);
+      let painted = false;
+      const images = new Map<number, HTMLImageElement>();
+      const pending = new Map<number, Promise<void>>();
+      const failed = new Set<number>();
 
-    const shell: HTMLDivElement = shellNode;
-    const stage: HTMLCanvasElement = canvasNode;
-    const context: CanvasRenderingContext2D = canvasContext;
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
-
-    if (prefersReducedMotion) return;
-
-    context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = "high";
-
-    let bounds = shell.getBoundingClientRect();
-    let viewWidth = Math.max(1, Math.round(bounds.width));
-    let viewHeight = Math.max(1, Math.round(bounds.height));
-    let rafId: number | null = null;
-    let lastDrawAt = 0;
-    let lastMotionAt = 0;
-    let lastPointerAt = 0;
-    let destroyed = false;
-    let imagesReady = false;
-    let targetX = 0;
-    let targetY = 0;
-    let displayX = 0;
-    let displayY = 0;
-    let activeAxis: "horizontal" | "vertical" = "horizontal";
-    let transitionFromTime = TIMELINE.centerHorizontal;
-    let transitionStartedAt = -1;
-    let renderFrame: FrameRequestCallback = () => undefined;
-
-    const images = Array.from({ length: FRAME_COUNT }, () => {
-      const image = new Image();
-      image.decoding = "async";
-      return image;
-    });
-    const loaded = Array.from({ length: FRAME_COUNT }, () => false);
-
-    const scheduleRender = () => {
-      if (rafId === null) rafId = window.requestAnimationFrame(renderFrame);
-    };
-
-    const resize = () => {
-      bounds = shell.getBoundingClientRect();
-      viewWidth = Math.max(1, Math.round(bounds.width));
-      viewHeight = Math.max(1, Math.round(bounds.height));
-      stage.width = viewWidth;
-      stage.height = viewHeight;
-      stage.style.width = `${viewWidth}px`;
-      stage.style.height = `${viewHeight}px`;
-      scheduleRender();
-    };
-
-    const drawCover = (image: HTMLImageElement, alpha = 1) => {
-      if (!image.naturalWidth || !image.naturalHeight || alpha <= 0.002) return;
-
-      const desktop = viewWidth >= 900;
-      const zoom = desktop ? 1.085 : viewWidth >= 600 ? 1.045 : 1.02;
-      const scale =
-        Math.max(
-          stage.width / image.naturalWidth,
-          stage.height / image.naturalHeight,
-        ) * zoom;
-      const drawWidth = image.naturalWidth * scale;
-      const drawHeight = image.naturalHeight * scale;
-      const centeredX = (stage.width - drawWidth) / 2;
-      const horizontalShift =
-        stage.width * (desktop ? 0.135 : viewWidth >= 600 ? 0.07 : 0.02);
-      const drawX = clamp(centeredX + horizontalShift, stage.width - drawWidth, 0);
-      const drawY = (stage.height - drawHeight) / 2;
-
-      context.globalAlpha = alpha;
-      context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
-    };
-
-    const nearestLoaded = (index: number) => {
-      const safeIndex = clamp(index, 0, FRAME_COUNT - 1);
-      if (loaded[safeIndex]) return images[safeIndex];
-
-      for (let distance = 1; distance < FRAME_COUNT; distance += 1) {
-        const before = safeIndex - distance;
-        const after = safeIndex + distance;
-        if (before >= 0 && loaded[before]) return images[before];
-        if (after < FRAME_COUNT && loaded[after]) return images[after];
-      }
-      return null;
-    };
-
-    const drawTimeline = (time: number, alpha = 1) => {
-      const rawFrame = clamp(time * FRAME_RATE, 0, FRAME_COUNT - 1);
-      const lowerIndex = Math.floor(rawFrame);
-      const upperIndex = Math.min(FRAME_COUNT - 1, lowerIndex + 1);
-      const blend = rawFrame - lowerIndex;
-      const lower = nearestLoaded(lowerIndex);
-      const upper = nearestLoaded(upperIndex);
-
-      if (lower && upper && upper !== lower) {
-        drawCover(lower, alpha * (1 - blend));
-        drawCover(upper, alpha * blend);
-      } else if (lower) {
-        drawCover(lower, alpha);
-      } else if (upper) {
-        drawCover(upper, alpha);
-      }
-    };
-
-    const horizontalTimeFor = (x: number) => {
-      const magnitude = Math.abs(x);
-      return x < 0
-        ? TIMELINE.centerHorizontal +
-            (TIMELINE.left - TIMELINE.centerHorizontal) * magnitude
-        : TIMELINE.centerHorizontal +
-            (TIMELINE.right - TIMELINE.centerHorizontal) * magnitude;
-    };
-
-    const verticalTimeFor = (y: number) => {
-      const magnitude = Math.abs(y);
-      return y < 0
-        ? TIMELINE.centerVertical +
-            (TIMELINE.up - TIMELINE.centerVertical) * magnitude
-        : TIMELINE.centerVertical +
-            (TIMELINE.down - TIMELINE.centerVertical) * magnitude;
-    };
-
-    renderFrame = (now: number) => {
-      rafId = null;
-      if (!imagesReady) return;
-
-      if (now - lastDrawAt < 1000 / DISPLAY_FPS) {
-        scheduleRender();
-        return;
-      }
-
-      const delta = lastMotionAt ? Math.min(48, now - lastMotionAt) : 16.7;
-      lastMotionAt = now;
-      const easing = 1 - Math.exp(-delta / 66);
-      displayX += (targetX - displayX) * easing;
-      displayY += (targetY - displayY) * easing;
-
-      const horizontalMagnitude = Math.abs(displayX);
-      const verticalMagnitude = Math.abs(displayY);
-      const totalMagnitude = horizontalMagnitude + verticalMagnitude;
-      const previousAxis = activeAxis;
-
-      if (totalMagnitude < 0.003) {
-        activeAxis = "horizontal";
-      } else if (
-        activeAxis === "horizontal" &&
-        verticalMagnitude > horizontalMagnitude * 1.04
-      ) {
-        activeAxis = "vertical";
-      } else if (
-        activeAxis === "vertical" &&
-        horizontalMagnitude > verticalMagnitude * 1.04
-      ) {
-        activeAxis = "horizontal";
-      }
-
-      const horizontalTime = horizontalTimeFor(displayX);
-      const verticalTime = verticalTimeFor(displayY);
-      const currentTime =
-        activeAxis === "horizontal" ? horizontalTime : verticalTime;
-
-      if (activeAxis !== previousAxis) {
-        transitionFromTime =
-          previousAxis === "horizontal" ? horizontalTime : verticalTime;
-        transitionStartedAt = now;
-      }
-
-      context.globalAlpha = 1;
-      context.fillStyle = "#090b16";
-      context.fillRect(0, 0, stage.width, stage.height);
-
-      const transitionProgress =
-        transitionStartedAt < 0
-          ? 1
-          : clamp((now - transitionStartedAt) / 120, 0, 1);
-
-      if (transitionProgress < 1) {
-        drawTimeline(transitionFromTime, 1 - transitionProgress);
-        drawTimeline(currentTime, transitionProgress);
-      } else {
-        drawTimeline(currentTime, 1);
-      }
-
-      context.globalAlpha = 1;
-      lastDrawAt = now;
-
-      const stillMoving =
-        Math.abs(targetX - displayX) > 0.0015 ||
-        Math.abs(targetY - displayY) > 0.0015 ||
-        transitionProgress < 1;
-      if (stillMoving) scheduleRender();
-    };
-
-    const setPointerTarget = (event: PointerEvent) => {
-      if (!hasFinePointer) return;
-      const rawX = clamp(
-        ((event.clientX - bounds.left) / Math.max(bounds.width, 1)) * 2 - 1,
-        -1,
-        1,
-      );
-      const rawY = clamp(
-        ((event.clientY - bounds.top) / Math.max(bounds.height, 1)) * 2 - 1,
-        -1,
-        1,
-      );
-      targetX = responsiveAxis(rawX);
-      targetY = responsiveAxis(rawY);
-      lastPointerAt = performance.now();
-      scheduleRender();
-    };
-
-    const refreshBounds = () => {
-      bounds = shell.getBoundingClientRect();
-    };
-
-    const resetPointer = () => {
-      targetX = 0;
-      targetY = 0;
-      scheduleRender();
-    };
-
-    const onScroll = () => {
-      refreshBounds();
-      if (hasFinePointer && performance.now() - lastPointerAt < 1500) return;
-      const progress = clamp(-bounds.top / Math.max(bounds.height, 1), 0, 1);
-      targetX = 0;
-      targetY = responsiveAxis(progress * 0.34);
-      scheduleRender();
-    };
-
-    const loadFrame = (index: number) =>
-      new Promise<void>((resolve) => {
-        const image = images[index];
-        const finish = () => {
-          loaded[index] = image.complete && image.naturalWidth > 0;
-          resolve();
-        };
-
-        image.onload = () => {
-          void image.decode().catch(() => undefined).finally(finish);
-        };
-        image.onerror = finish;
-        image.src = framePath(index);
-      });
-
-    const loadFrames = async () => {
-      const anchors = Object.values(TIMELINE).map(frameAt);
-      const priority = new Set<number>();
-      anchors.forEach((anchor) => {
-        for (let offset = -6; offset <= 6; offset += 1) {
-          priority.add(clamp(anchor + offset, 0, FRAME_COUNT - 1));
+      const scheduleRender = () => {
+        if (!destroyed && visible && !document.hidden && rafId === null) {
+          rafId = window.requestAnimationFrame(renderFrame);
         }
+      };
+      const stopRender = () => {
+        if (rafId !== null) window.cancelAnimationFrame(rafId);
+        rafId = null;
+        lastMotionAt = 0;
+      };
+      const loadFrame = (index: number): Promise<void> => {
+        if (destroyed || images.has(index) || failed.has(index)) return Promise.resolve();
+        const existing = pending.get(index);
+        if (existing) return existing;
+        const task = new Promise<void>((resolve) => {
+          const image = new Image();
+          image.decoding = "async";
+          const finish = (success: boolean) => {
+            image.onload = null;
+            image.onerror = null;
+            if (!destroyed) {
+              if (success) images.set(index, image);
+              else failed.add(index);
+              pending.delete(index);
+              scheduleRender();
+            }
+            resolve();
+          };
+          image.onload = () => {
+            void image.decode().then(() => finish(true), () => finish(false));
+          };
+          image.onerror = () => finish(false);
+          image.src = framePath(index);
+        });
+        pending.set(index, task);
+        return task;
+      };
+
+      const paint = (frames: WeightedFrame[], x = displayX, y = displayY) => {
+        if (frames.some(({ index }) => !images.has(index))) {
+          // Hold the last complete pose while loading. Never substitute an
+          // unrelated frame or expose an empty canvas between downloads.
+          frames.forEach(({ index }) => { void loadFrame(index); });
+          return false;
+        }
+        for (const { index, alpha } of opaqueLayers(frames)) {
+          context.globalAlpha = alpha;
+          context.drawImage(images.get(index)!, crop.x + x * 6, crop.y + y * 5, crop.width, crop.height);
+        }
+        context.globalAlpha = 1;
+        if (!painted) {
+          painted = true;
+          shell.classList.add("is-canvas-ready");
+        }
+        return true;
+      };
+
+      function renderFrame(now: number) {
+        rafId = null;
+        if (destroyed || !visible || document.hidden) return;
+        if (!painted && !paint([{ index: NEUTRAL_FRAME, weight: 1 }])) return;
+        const delta = lastMotionAt ? Math.min(32, now - lastMotionAt) : 1000 / 60;
+        const nextX = damp(displayX, targetX, delta);
+        const nextY = damp(displayY, targetY, delta);
+        const nextPose = advancePose(pose, targetX, targetY, delta);
+        if (!paint(poseWeights(nextPose.axis, nextPose.position), nextX, nextY)) {
+          lastMotionAt = 0;
+          return;
+        }
+        pose = nextPose;
+        displayX = nextX;
+        displayY = nextY;
+        lastMotionAt = now;
+        const wantedPosition = pose.axis === "horizontal" ? targetX : targetY;
+        if (pose.transition || pose.position !== wantedPosition ||
+            displayX !== targetX || displayY !== targetY) scheduleRender();
+        else lastMotionAt = 0;
+      }
+
+      const resize = () => {
+        bounds = hero.getBoundingClientRect();
+        const width = Math.max(1, Math.round(bounds.width));
+        const height = Math.max(1, Math.round(bounds.height));
+        crop = coverRect(width, height);
+        fallback.style.backgroundSize = `${crop.width}px ${crop.height}px`;
+        fallback.style.backgroundPosition = `${crop.x}px ${crop.y}px`;
+        // Assigning canvas dimensions clears its pixels, even if unchanged.
+        if (stage.width !== width || stage.height !== height) {
+          stage.width = width;
+          stage.height = height;
+          context.imageSmoothingEnabled = true;
+          context.imageSmoothingQuality = "high";
+          if (painted) paint(poseWeights(pose.axis, pose.position));
+        }
+        scheduleRender();
+      };
+      const resetPointer = () => {
+        targetX = 0;
+        targetY = 0;
+        scheduleRender();
+      };
+      const setPointerTarget = (event: PointerEvent) => {
+        if (event.pointerType === "touch") return;
+        targetX = responsiveAxis(clamp((event.clientX - bounds.left) / bounds.width * 2 - 1, -1, 1));
+        targetY = responsiveAxis(clamp((event.clientY - bounds.top) / bounds.height * 2 - 1, -1, 1));
+        scheduleRender();
+      };
+      const enterHero = (event: PointerEvent) => {
+        bounds = hero.getBoundingClientRect();
+        setPointerTarget(event);
+      };
+      const onScroll = () => {
+        bounds = hero.getBoundingClientRect();
+        // Scrolling should not select another pose after the pointer leaves.
+        resetPointer();
+      };
+      const onVisibility = () => {
+        resetPointer();
+        if (document.hidden) stopRender();
+      };
+      const resizeObserver = new ResizeObserver(resize);
+      const visibilityObserver = new IntersectionObserver(([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible) scheduleRender();
+        else { resetPointer(); stopRender(); }
       });
 
-      await Promise.all([...priority].map(loadFrame));
-      if (destroyed) return;
+      resize();
+      resizeObserver.observe(hero);
+      visibilityObserver.observe(hero);
+      // Capture the common parent: the copy and links sit above the media.
+      hero.addEventListener("pointerenter", enterHero);
+      hero.addEventListener("pointermove", setPointerTarget, { passive: true });
+      hero.addEventListener("pointerleave", resetPointer);
+      hero.addEventListener("pointercancel", resetPointer);
+      window.addEventListener("blur", resetPointer);
+      window.addEventListener("scroll", onScroll, { passive: true });
+      document.addEventListener("visibilitychange", onVisibility);
 
-      imagesReady = loaded.some(Boolean);
-      if (imagesReady) {
-        shell.classList.add("is-canvas-ready");
-        scheduleRender();
-      }
+      void (async () => {
+        // Show neutral immediately, then load only the calibrated poses in
+        // small batches. Phones and reduced-motion users never enter this path.
+        await loadFrame(NEUTRAL_FRAME);
+        const priority = [31, 39, 65, 93];
+        const rest = MOTION_FRAMES.filter(index => index !== NEUTRAL_FRAME && !priority.includes(index));
+        const queue = [...priority, ...rest];
+        for (let i = 0; i < queue.length && !destroyed; i += 3) {
+          await Promise.all(queue.slice(i, i + 3).map(loadFrame));
+        }
+      })();
 
-      const remaining = Array.from(
-        { length: FRAME_COUNT },
-        (_, index) => index,
-      ).filter((index) => !priority.has(index));
-
-      for (let start = 0; start < remaining.length && !destroyed; start += 10) {
-        await Promise.all(remaining.slice(start, start + 10).map(loadFrame));
-        scheduleRender();
-        await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
-      }
+      return () => {
+        destroyed = true;
+        stopRender();
+        resizeObserver.disconnect();
+        visibilityObserver.disconnect();
+        hero.removeEventListener("pointerenter", enterHero);
+        hero.removeEventListener("pointermove", setPointerTarget);
+        hero.removeEventListener("pointerleave", resetPointer);
+        hero.removeEventListener("pointercancel", resetPointer);
+        window.removeEventListener("blur", resetPointer);
+        window.removeEventListener("scroll", onScroll);
+        document.removeEventListener("visibilitychange", onVisibility);
+        shell.classList.remove("is-canvas-ready");
+        images.clear();
+      };
     };
 
-    resize();
-    void loadFrames();
-
-    const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(shell);
-    shell.addEventListener("pointerenter", refreshBounds);
-    shell.addEventListener("pointermove", setPointerTarget, { passive: true });
-    shell.addEventListener("pointerleave", resetPointer);
-    window.addEventListener("blur", resetPointer);
-    window.addEventListener("scroll", onScroll, { passive: true });
-
+    let stop: (() => void) | undefined;
+    const syncPreferences = () => {
+      stop?.();
+      stop = undefined;
+      if (!reducedMotion.matches && finePointer.matches) stop = start();
+    };
+    syncPreferences();
+    reducedMotion.addEventListener("change", syncPreferences);
+    finePointer.addEventListener("change", syncPreferences);
     return () => {
-      destroyed = true;
-      if (rafId !== null) window.cancelAnimationFrame(rafId);
-      resizeObserver.disconnect();
-      shell.removeEventListener("pointerenter", refreshBounds);
-      shell.removeEventListener("pointermove", setPointerTarget);
-      shell.removeEventListener("pointerleave", resetPointer);
-      window.removeEventListener("blur", resetPointer);
-      window.removeEventListener("scroll", onScroll);
+      stop?.();
+      reducedMotion.removeEventListener("change", syncPreferences);
+      finePointer.removeEventListener("change", syncPreferences);
     };
   }, []);
 
   return (
     <div ref={shellRef} className="hero-media" aria-hidden="true">
-      <div
-        className="hero-fallback-frame"
-        style={{ backgroundImage: `url(${framePath(33)})` }}
-      />
+      <div className="hero-fallback-frame" style={{ backgroundImage: `url(${framePath(NEUTRAL_FRAME)})` }} />
       <canvas ref={canvasRef} className="hero-canvas" />
       <div className="hero-media-vignette" />
       <div className="hero-media-grain" />
