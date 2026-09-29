@@ -3,47 +3,39 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import ts from 'typescript';
 
-const source = readFileSync(new URL('../components/hero-motion.ts', import.meta.url), 'utf8');
+const assets = JSON.parse(readFileSync(new URL('../components/hero-assets.json', import.meta.url), 'utf8'));
+const source = readFileSync(new URL('../components/hero-motion.ts', import.meta.url), 'utf8')
+  .replace('import assets from "./hero-assets.json";', `const assets = ${JSON.stringify(assets)};`);
 const code = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 },
 }).outputText;
-const { poseWeights, opaqueLayers, MOTION_FRAMES, POSE_PATHS, damp, coverRect, responsiveAxis, advancePose, preferredAxis } =
+const { poseFrame, spriteFrame, NEUTRAL_FRAME, PATCH, SHEET_COUNT, MOTION_FRAMES, POSE_PATHS, damp, coverRect, responsiveAxis, advancePose, preferredAxis } =
   await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 
 const near = (a, b, epsilon = 1e-9) => assert.ok(Math.abs(a - b) < epsilon, `${a} != ${b}`);
 
-test('every pose stays opaque and preserves weighted colors', () => {
+test('every intermediate cursor position selects exactly one complete captured pose', () => {
   for (const axis of ['horizontal', 'vertical']) {
     for (let position = -1; position <= 1.001; position += 0.005) {
-      const weights = poseWeights(axis, position);
-      near(weights.reduce((sum, f) => sum + f.weight, 0), 1);
-      assert.ok(weights.length <= 2);
-      let opacity = 0, value = 0;
-      for (const layer of opaqueLayers(weights)) {
-        assert.ok(layer.alpha > 0 && layer.alpha <= 1);
-        opacity = layer.alpha + opacity * (1 - layer.alpha);
-        value = layer.index * layer.alpha + value * (1 - layer.alpha);
-      }
-      near(opacity, 1);
-      near(value, weights.reduce((sum, f) => sum + f.index * f.weight, 0));
+      const index = poseFrame(axis, position);
+      assert.equal(typeof index, 'number');
+      assert.ok(MOTION_FRAMES.includes(index));
+      const sprite = spriteFrame(index);
+      assert.ok(sprite.sheet >= 0 && sprite.sheet < SHEET_COUNT);
+      assert.ok(sprite.x >= 0 && sprite.x + PATCH.width <= PATCH.width * assets.columns);
+      assert.ok(sprite.y >= 0 && sprite.y + PATCH.height <= PATCH.height * 4);
     }
   }
 });
 
-test('halfway crossfades do not leave 25 percent of the dark background exposed', () => {
-  const layers = opaqueLayers([{ index: 31, weight: 0.5 }, { index: 33, weight: 0.5 }]);
-  assert.deepEqual(layers.map(f => f.alpha), [1, 0.5]);
-});
-
-test('small movements activate all directions without timeline detours or blinks', () => {
+test('small movements select directional poses and neutral remains exact', () => {
   for (const [x, y, path] of [[-0.02, 0, 'left'], [0.02, 0, 'right'], [0, -0.02, 'up'], [0, 0.02, 'down']]) {
-    const weights = poseWeights(x ? 'horizontal' : 'vertical', responsiveAxis(x || y));
-    assert.ok(weights.some(f => f.index !== 33 && f.weight > 0.05));
-    assert.ok(weights.every(f => POSE_PATHS[path].includes(f.index)));
+    const frame = poseFrame(x ? 'horizontal' : 'vertical', responsiveAxis(x || y));
+    assert.notEqual(frame, NEUTRAL_FRAME);
+    assert.ok(POSE_PATHS[path].includes(frame));
   }
-  assert.equal(MOTION_FRAMES.length, 20);
-  assert.ok(!MOTION_FRAMES.includes(38) && !MOTION_FRAMES.includes(64));
-  assert.deepEqual(poseWeights('horizontal', 0), [{ index: 33, weight: 1 }]);
+  assert.ok(MOTION_FRAMES.length > 40);
+  assert.equal(poseFrame('horizontal', 0), NEUTRAL_FRAME);
 });
 
 test('diagonal jitter keeps the current axis; deliberate axis changes pass through neutral', () => {
@@ -60,7 +52,7 @@ test('diagonal jitter keeps the current axis; deliberate axis changes pass throu
       assert.equal(pose.position, 0);
       sawNeutral = true;
     }
-    assert.ok(poseWeights(pose.axis, pose.position).length <= 2);
+    assert.ok(MOTION_FRAMES.includes(poseFrame(pose.axis, pose.position)));
   }
   assert.ok(sawNeutral);
   assert.equal(pose.axis, 'vertical');
@@ -81,4 +73,10 @@ test('the shared fallback and canvas crop always covers the viewport', () => {
     assert.ok(crop.x <= 0 && crop.y <= 0);
     assert.ok(crop.x + crop.width >= width && crop.y + crop.height >= height);
   }
+});
+
+test('near-center direction changes do not incur a fixed 100 ms pause', () => {
+  const pose = advancePose({ axis: 'horizontal', position: 0.03 }, 0, -0.7, 1000 / 60);
+  assert.equal(pose.axis, 'vertical');
+  assert.ok(advancePose(pose, 0, -0.7, 1000 / 60).position < -0.1);
 });
