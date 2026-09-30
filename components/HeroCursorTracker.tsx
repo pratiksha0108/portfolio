@@ -35,6 +35,7 @@ export default function HeroCursorTracker() {
       let crop = coverRect(bounds.width, bounds.height);
       let ready = false;
       let paintedFrame = -1;
+      let blend: { from: number; to: number; elapsed: number } | null = null;
       let poster: HTMLImageElement | undefined;
       const sheets: HTMLImageElement[] = [];
       const pixelRatio = () => Math.min(window.devicePixelRatio || 1, 1.5);
@@ -56,21 +57,41 @@ export default function HeroCursorTracker() {
         await image.decode();
         return image;
       };
-      const paint = (index: number) => {
-        if (!ready || index === paintedFrame) return;
+      const drawPose = (index: number) => {
         const frame = spriteFrame(index);
         const scale = crop.width / 1280;
-        // Only the character region changes. The sky and city are painted once
-        // on resize; each new pose needs one opaque draw and no face blending.
         context.drawImage(sheets[frame.sheet], frame.x, frame.y, PATCH.width, PATCH.height,
           crop.x + PATCH.x * scale, crop.y + PATCH.y * scale,
           PATCH.width * scale, PATCH.height * scale);
-        paintedFrame = index;
+      };
+      const paint = (index: number, milliseconds = 0) => {
+        if (!ready) return;
+        if (index !== paintedFrame) {
+          blend = paintedFrame < 0 ? null : { from: paintedFrame, to: index, elapsed: 0 };
+          paintedFrame = index;
+        } else if (!blend) return;
+        if (blend) {
+          blend.elapsed += milliseconds;
+          const progress = Math.min(1, blend.elapsed / 45);
+          // A short transition softens the frame boundary. The first layer is
+          // fully opaque so blending cannot dim the face or expose old pixels.
+          if (progress < 1) {
+            context.globalAlpha = 1;
+            drawPose(blend.from);
+            context.globalAlpha = progress * progress * (3 - 2 * progress);
+            drawPose(blend.to);
+            context.globalAlpha = 1;
+            return;
+          }
+          blend = null;
+        }
+        drawPose(index);
       };
       const paintBackdrop = () => {
         if (!poster) return;
         context.drawImage(poster, crop.x, crop.y, crop.width, crop.height);
         paintedFrame = -1;
+        blend = null;
         if (ready) paint(poseFrame(pose.axis, pose.position));
         shell.classList.add("is-canvas-ready");
       };
@@ -83,7 +104,7 @@ export default function HeroCursorTracker() {
         displayY = damp(displayY, targetY, delta);
         if (ready) {
           pose = advancePose(pose, targetX, targetY, delta);
-          paint(poseFrame(pose.axis, pose.position));
+          paint(poseFrame(pose.axis, pose.position), delta);
         }
         // The compositor handles subtle continuous movement without repainting
         // a full-screen canvas each refresh. Snap to physical pixels for clarity.
@@ -93,7 +114,7 @@ export default function HeroCursorTracker() {
         stage.style.transform = `translate3d(${x}px, ${y}px, 0)`;
         lastMotionAt = now;
         const wanted = pose.axis === "horizontal" ? targetX : targetY;
-        if ((ready && pose.position !== wanted) || displayX !== targetX || displayY !== targetY) scheduleRender();
+        if (blend || (ready && pose.position !== wanted) || displayX !== targetX || displayY !== targetY) scheduleRender();
         else lastMotionAt = 0;
       };
 

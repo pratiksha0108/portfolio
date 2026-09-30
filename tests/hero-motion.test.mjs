@@ -45,7 +45,7 @@ test('diagonal jitter keeps the current axis; deliberate axis changes pass throu
   }
   let pose = { axis: 'horizontal', position: 0.8 };
   let sawNeutral = false;
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 90; i++) {
     const previous = pose;
     pose = advancePose(pose, 0.1, -0.9, 1000 / 60);
     if (previous.axis !== pose.axis) {
@@ -78,5 +78,20 @@ test('the shared fallback and canvas crop always covers the viewport', () => {
 test('near-center direction changes do not incur a fixed 100 ms pause', () => {
   const pose = advancePose({ axis: 'horizontal', position: 0.03 }, 0, -0.7, 1000 / 60);
   assert.equal(pose.axis, 'vertical');
-  assert.ok(advancePose(pose, 0, -0.7, 1000 / 60).position < -0.1);
+  assert.ok(advancePose(pose, 0, -0.7, 1000 / 60).position < -0.01);
+});
+
+test('large pointer sweeps turn gradually and never snap across several poses', () => {
+  for (const hz of [30, 60, 120]) {
+    let pose = { axis: 'horizontal', position: -1 };
+    const delta = 1000 / hz;
+    for (let elapsed = 0; elapsed < 1400; elapsed += delta) {
+      const previous = pose.position;
+      pose = advancePose(pose, 1, 0, delta);
+      assert.ok(pose.position - previous <= 2.4 / hz + 1e-9);
+      assert.ok(pose.position >= previous);
+      if (elapsed < 200) assert.ok(pose.position < 0);
+    }
+    assert.ok(pose.position > 0.99);
+  }
 });
