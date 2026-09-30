@@ -44,27 +44,31 @@ export function advancePose(pose: Pose, x: number, y: number, milliseconds: numb
   if (wanted !== pose.axis && Math.abs(pose.position) > 0.0005) {
     // Travel through neutral at a bounded speed, without a fixed pause on
     // every direction change. Small turns take proportionally less time.
-    const step = milliseconds / 1000 * 10;
+    const step = milliseconds / 1000 * 2.4;
     if (Math.abs(pose.position) > step) {
       return { axis: pose.axis, position: pose.position - Math.sign(pose.position) * step };
     }
     return { axis: wanted, position: 0 };
   }
   const axis = wanted;
-  return { axis, position: damp(pose.position, axis === "horizontal" ? x : y, milliseconds) };
+  const target = axis === "horizontal" ? x : y;
+  const eased = damp(pose.position, target, milliseconds);
+  // Cap angular travel so a pointer sweep cannot skip straight to a far pose.
+  const step = milliseconds / 1000 * 2.4;
+  return { axis, position: pose.position + clamp(eased - pose.position, -step, step) };
 }
 
 export function poseFrame(axis: Axis, position: number): number {
   const path = axis === "horizontal"
     ? position < 0 ? POSE_PATHS.left : POSE_PATHS.right
     : position < 0 ? POSE_PATHS.up : POSE_PATHS.down;
-  // A single captured pose keeps the eyes and hair sharp at intermediate
-  // pointer positions. Crossfading different faces creates permanent ghosting.
+  // Select a sharp resting pose. The renderer only blends briefly when this
+  // selection changes, never leaving two faces superimposed while idle.
   return path[Math.round(clamp(Math.abs(position), 0, 1) * (path.length - 1))];
 }
 
 export function damp(current: number, target: number, milliseconds: number) {
-  const next = current + (target - current) * (1 - Math.exp(-milliseconds / 45));
+  const next = current + (target - current) * (1 - Math.exp(-milliseconds / 110));
   return Math.abs(next - target) < 0.0005 ? target : next;
 }
 
