@@ -80,46 +80,46 @@ export const featuredProjects: FeaturedProject[] = [
   {
     id: "service-ai",
     index: "02",
-    title: "Retail Service AI",
-    eyebrow: "Generative AI · Concept prototype",
+    title: "Care Canvas · Retail Service AI",
+    eyebrow: "Support analytics · Human-first automation · Product strategy",
     description:
-      "A working customer service concept that explores conversational support, product guidance, and image-assisted issue intake.",
+      "Explore 8,469 practice support tickets, review cases with explainable routing, and test a human-first assistance playbook.",
     problem:
-      "Retail customers repeatedly ask about orders, returns, products, and damaged items, while support teams spend time collecting the same context before they can help.",
+      "Support leads need to understand which cases assistance touches, why they receive a route, and where human responsibility must remain before approving a pilot.",
     userSegments: [
       {
-        title: "Order-focused shoppers",
-        description: "Want quick status updates and next steps without searching multiple screens.",
+        title: "Support operations leads",
+        description: "A target-user hypothesis: need a transparent way to evaluate routing and review workload before a pilot.",
       },
       {
-        title: "Product explorers",
-        description: "Want guidance that narrows choices based on an expressed need.",
+        title: "Support reviewers",
+        description: "Need case context, inspectable rules, and clear separation between a draft and a completed action.",
       },
       {
-        title: "Customers reporting damage",
-        description: "Need a simple way to explain an issue and provide visual evidence.",
+        title: "Retail customers",
+        description: "The separate fictional sandbox demonstrates order lookup, product matching, and a contextual handoff.",
       },
     ],
     whatWeDid: [
-      "Created a conversational entry point that can handle several common service intents.",
-      "Separated the concept into product recommendations, order context, and image-assisted damage intake.",
-      "Built the interaction directly so the concept could be evaluated through behavior rather than static mockups.",
+      "Connected source-backed analytics, filterable case review, and a routing-policy simulation in one workspace.",
+      "Published only eight approved fields from 8,469 Kaggle practice records, excluding customer details and free text while explicitly reporting missing ratings.",
+      "Kept critical and sensitive-case review mandatory, added local review exports, and preserved three fictional customer journeys.",
     ],
     howWeBuilt: [
-      "Used React to prototype the end-to-end interaction and OpenAI models for conversational responses.",
-      "Structured each service journey as a focused module so additional workflows could be added independently.",
-      "Explored image input for damage intake to reduce the amount of information customers need to type.",
+      "Built the live workspace with JavaScript, pure tested routing functions, accessible controls, and a versioned self-contained GitHub Pages release.",
+      "Created a reproducible allowlist-based data preparation script and separate source observations, adjustable assumptions, and session decisions.",
+      "Preserved the original React and OpenAI prototype code separately. The public version uses deterministic rules and templates, not live model calls or image analysis.",
     ],
     outcome:
-      "The result is a working prototype with three service journeys and a shared conversational interface that demonstrates how context can remain within one experience.",
+      "A four-view interactive lab with 8,469 practice cases, explainable routing, review checks, scenario exports, and three fictional retail journeys.",
     impact:
-      "The concept shows how support intake could become faster and more consistent while giving customers a clearer path from question to resolution.",
+      "Designed to make assistance boundaries testable. User research, routing quality, and business impact are unvalidated; the product brief defines a shadow-mode pilot and review rubric.",
     proof: [
-      { value: "1", label: "working prototype" },
-      { value: "3", label: "service journeys" },
-      { value: "AI", label: "first interaction" },
+      { value: "8,469", label: "practice records" },
+      { value: "4", label: "connected views" },
+      { value: "21", label: "automated checks" },
     ],
-    stack: ["React", "OpenAI", "JavaScript", "Image input", "Conversation design"],
+    stack: ["JavaScript", "Python", "Data quality", "Routing rules", "Node tests", "Product strategy"],
     repo: "https://github.com/pratiksha0108/nike-customer-service-ai",
     liveUrl: "https://pratiksha0108.github.io/nike-customer-service-ai/",
     demo: "service",
