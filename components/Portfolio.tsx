@@ -20,11 +20,13 @@ import {
 } from "@/data/portfolio";
 
 const navItems = [
+  { id: "projects", label: "Projects" },
   { id: "work", label: "Work" },
   { id: "stories", label: "Product stories" },
   { id: "about", label: "About" },
   { id: "contact", label: "Contact" },
 ];
+const sectionHref = (id: string) => id === "projects" ? `${process.env.NODE_ENV === "production" ? "/portfolio" : ""}/projects/` : `#${id}`;
 
 function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return <span aria-hidden="true">{diagonal ? "↗" : "→"}</span>;
@@ -190,7 +192,7 @@ function ProjectModal({
 
 function CommandPalette({ onClose }: { onClose: () => void }) {
   const commands = [
-    ...navItems.map((item) => ({ label: `Go to ${item.label}`, href: `#${item.id}`, meta: "Section" })),
+    ...navItems.map((item) => ({ label: `Go to ${item.label}`, href: sectionHref(item.id), meta: "Section" })),
     { label: "Open GitHub", href: "https://github.com/pratiksha0108", meta: "External" },
     { label: "Open LinkedIn", href: "https://www.linkedin.com/in/pratiksha-shirsat", meta: "External" },
     { label: "Email Pratiksha", href: "mailto:pvshirsat01@gmail.com", meta: "Contact" },
@@ -307,7 +309,7 @@ export default function Portfolio() {
           {navItems.map((item) => (
             <a
               key={item.id}
-              href={`#${item.id}`}
+              href={sectionHref(item.id)}
               className={activeSection === item.id ? "is-active" : ""}
               onClick={() => setMobileNavOpen(false)}
             >
@@ -349,7 +351,7 @@ export default function Portfolio() {
             I listen to users, frame the real problem, build the prototype, and help cross-functional teams ship what matters.
           </p>
           <div className="hero-actions reveal is-visible">
-            <a href="#work" className="primary-button">Explore selected work <Arrow /></a>
+            <a href={sectionHref("projects")} className="primary-button">Explore projects <Arrow /></a>
             <a href="mailto:pvshirsat01@gmail.com" className="text-link">Start a conversation <Arrow diagonal /></a>
           </div>
 
