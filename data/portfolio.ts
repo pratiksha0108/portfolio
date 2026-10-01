@@ -228,10 +228,10 @@ export const productStories: ProductStory[] = [
 
 export const supportingProjects = [
   {
-    title: "Flight Operations System",
+    title: "Boarding Lab · Flight Operations",
     description:
-      "A Java and MySQL desktop system with traveler and administrator journeys for domestic and international schedules, booking, editing, and account access.",
-    stack: ["Java", "Swing", "MySQL", "JDBC"],
+      "Choose exact seats, create a practice trip, and inspect date-specific capacity in a connected traveler and operations workspace. Extends the original Java desktop project.",
+    stack: ["JavaScript", "State modeling", "Seat inventory", "Node tests", "Product UX"],
     repo: "https://github.com/pratiksha0108/Flight-Management-System",
     liveUrl: "https://pratiksha0108.github.io/Flight-Management-System/",
     symbol: "✈",

@@ -6,6 +6,7 @@ export const metadata={title:'Projects | Pratiksha Shirsat',description:'Explore
 function sourceNote(repo: string) {
  if (repo.endsWith('/Github-Data-Forecasting')) return 'Real public GitHub data with transparent statistical baselines. Capacity and queue are hypothetical; no staffing or productivity claims.';
  if (repo.endsWith('/nike-customer-service-ai')) return 'Kaggle practice data with customer details excluded. Transparent routing rules and templates, not live AI. Handling times are assumptions, not measured savings.';
+ if (repo.endsWith('/Flight-Management-System')) return 'Fictional flights and fares with working seat-inventory rules. Browser-session reservations only: no payment, live airline connection, or real tickets.';
  return 'Interactive browser adaptation with sample data. Original technologies are listed above; backend services are not running in the demo.';
 }
 export default function Projects(){
