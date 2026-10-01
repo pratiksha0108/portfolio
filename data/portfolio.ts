@@ -13,6 +13,7 @@ export type FeaturedProject = {
   proof: { value: string; label: string }[];
   stack: string[];
   repo: string;
+  liveUrl: string;
   demo: "forecast" | "service" | "insurance";
   accent: "cyan" | "coral" | "lime";
 };
@@ -72,6 +73,7 @@ export const featuredProjects: FeaturedProject[] = [
     ],
     stack: ["React", "Flask", "GitHub API", "TensorFlow", "Prophet", "Docker", "GCP"],
     repo: "https://github.com/pratiksha0108/Github-Data-Forecasting",
+    liveUrl: "https://pratiksha0108.github.io/Github-Data-Forecasting/",
     demo: "forecast",
     accent: "cyan",
   },
@@ -119,6 +121,7 @@ export const featuredProjects: FeaturedProject[] = [
     ],
     stack: ["React", "OpenAI", "JavaScript", "Image input", "Conversation design"],
     repo: "https://github.com/pratiksha0108/nike-customer-service-ai",
+    liveUrl: "https://pratiksha0108.github.io/nike-customer-service-ai/",
     demo: "service",
     accent: "coral",
   },
@@ -166,6 +169,7 @@ export const featuredProjects: FeaturedProject[] = [
     ],
     stack: ["React", "Material UI", "Formik", "Yup", "React Router", "Product UX"],
     repo: "https://github.com/pratiksha0108/Insurance-Quote-System",
+    liveUrl: "https://pratiksha0108.github.io/Insurance-Quote-System/",
     demo: "insurance",
     accent: "lime",
   },
@@ -229,6 +233,7 @@ export const supportingProjects = [
       "A Java and MySQL desktop system with traveler and administrator journeys for domestic and international schedules, booking, editing, and account access.",
     stack: ["Java", "Swing", "MySQL", "JDBC"],
     repo: "https://github.com/pratiksha0108/Flight-Management-System",
+    liveUrl: "https://pratiksha0108.github.io/Flight-Management-System/",
     symbol: "✈",
   },
   {
@@ -237,6 +242,7 @@ export const supportingProjects = [
       "A role-aware community product with topic-based posts, threaded replies, moderation controls, login, and user-management experiences.",
     stack: ["React", "Material UI", "Role-based UX"],
     repo: "https://github.com/pratiksha0108/Blogging-Platform",
+    liveUrl: "https://pratiksha0108.github.io/Blogging-Platform/",
     symbol: "✦",
   },
 ];

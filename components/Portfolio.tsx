@@ -181,6 +181,7 @@ function ProjectModal({
           <div className="stack-list">
             {project.stack.map((item) => <span key={item}>{item}</span>)}
           </div>
+          <a href={project.liveUrl} target="_blank" rel="noreferrer">Open live demo <Arrow diagonal /></a>
           <a href={project.repo} target="_blank" rel="noreferrer">
             View source <Arrow diagonal />
           </a>
@@ -415,6 +416,7 @@ export default function Portfolio() {
                   ))}
                 </div>
                 <div className="project-links">
+                  <a href={project.liveUrl} target="_blank" rel="noreferrer">Open live demo <Arrow diagonal /></a>
                   <button type="button" onClick={() => setSelectedProject(project)}>Open case study <Arrow /></button>
                   <a href={project.repo} target="_blank" rel="noreferrer">Source <Arrow diagonal /></a>
                 </div>
@@ -486,7 +488,7 @@ export default function Portfolio() {
         <div className="supporting-grid">
           {supportingProjects.map((project) => (
             <TiltSurface key={project.title} className="supporting-card reveal">
-              <a href={project.repo} target="_blank" rel="noreferrer">
+              <a href={project.liveUrl} target="_blank" rel="noreferrer">
                 <span className="supporting-symbol">{project.symbol}</span>
                 <span className="supporting-arrow">↗</span>
                 <h3>{project.title}</h3>
