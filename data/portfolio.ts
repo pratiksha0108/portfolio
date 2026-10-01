@@ -32,16 +32,16 @@ export const featuredProjects: FeaturedProject[] = [
   {
     id: "forecast-lab",
     index: "01",
-    title: "GitHub Forecast Lab",
-    eyebrow: "AI and ML · Developer analytics",
+    title: "Repo Radar · GitHub Forecast Lab",
+    eyebrow: "Data analytics · Forecast evaluation · Product strategy",
     description:
-      "An interactive product that turns repository activity into visual trends and forward-looking signals for engineering teams.",
+      "Explore real GitHub activity, compare four forecasting baselines, and stress-test a capacity plan with an exportable decision brief.",
     problem:
-      "GitHub contains rich activity data, but raw counts do not explain whether delivery health is improving, where work is accumulating, or what teams should expect next.",
+      "Activity charts alone do not tell a technical lead whether a forecast deserves trust or how a planning assumption changes the outcome.",
     userSegments: [
       {
         title: "Engineering leaders",
-        description: "Need an early view of delivery risk, workload, and contributor trends.",
+        description: "A target-user hypothesis: need a transparent way to discuss changing activity and capacity assumptions.",
       },
       {
         title: "Repository maintainers",
@@ -53,25 +53,25 @@ export const featuredProjects: FeaturedProject[] = [
       },
     ],
     whatWeDid: [
-      "Designed a dashboard that combines descriptive analytics with forward-looking forecasts.",
-      "Mapped GitHub activity into product signals such as issues, pull requests, commits, contributors, branches, and releases.",
-      "Made model outputs visible so users could compare approaches instead of receiving one unexplained prediction.",
+      "Connected three views: signal exploration, time-based model evaluation, and hypothetical capacity planning.",
+      "Aggregated 1,009 public GitHub records into 36 monthly observations for each of two repositories, keeping issues and pull requests separate.",
+      "Added local CSV import, inspectable model errors, adjustable scenarios, and a decision brief that carries its limitations with it.",
     ],
     howWeBuilt: [
-      "Used React for interactive exploration and Flask for GitHub API retrieval and data preparation.",
-      "Separated forecasting into an independent service using LSTM, Prophet, and statistical models.",
-      "Containerized the services with Docker and designed deployment around Google Cloud.",
+      "Built the live browser workspace with JavaScript modules, accessible SVG charts, motion controls and static GitHub Pages hosting.",
+      "Created a reproducible public-data extraction script and tested pure forecasting, validation and planning functions.",
+      "Preserved the original React, Flask and machine-learning service code separately; those backend services are not running in the live version.",
     ],
     outcome:
-      "The result is a working analytics experience that lets a user move from repository data to historical patterns and six forecasted signals in one flow.",
+      "A working evidence-to-decision workflow with real source snapshots, four transparent baselines, six rolling one-month tests, and local-only scenario exports.",
     impact:
-      "The product reframes repository data as a planning tool, helping technical teams discuss capacity and delivery risk with evidence instead of isolated counts.",
+      "Designed to make planning assumptions easier to inspect. Usability and business impact remain hypotheses; a task-based evaluation plan is documented.",
     proof: [
-      { value: "6", label: "signals forecast" },
-      { value: "3", label: "model families" },
-      { value: "60%", label: "faster query time" },
+      { value: "1,009", label: "source records" },
+      { value: "4", label: "tested baselines" },
+      { value: "36", label: "months per repository" },
     ],
-    stack: ["React", "Flask", "GitHub API", "TensorFlow", "Prophet", "Docker", "GCP"],
+    stack: ["JavaScript", "GitHub API", "Time-series analysis", "SVG", "Node tests", "Product strategy"],
     repo: "https://github.com/pratiksha0108/Github-Data-Forecasting",
     liveUrl: "https://pratiksha0108.github.io/Github-Data-Forecasting/",
     demo: "forecast",
