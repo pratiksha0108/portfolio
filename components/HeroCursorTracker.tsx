@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import {
-  NEUTRAL_FRAME, PATCH, SHEET_COUNT, advancePose, clamp, coverRect, damp,
+  NEUTRAL_FRAME, PATCH, SHEET_COUNT, advancePose, clamp, portraitRect, damp,
   poseFrame, responsiveAxis, spriteFrame, type Pose,
 } from "./hero-motion";
 
@@ -32,7 +32,7 @@ export default function HeroCursorTracker() {
       let lastMotionAt = 0;
       let targetX = 0, targetY = 0, displayX = 0, displayY = 0;
       let pose: Pose = { axis: "horizontal", position: 0 };
-      let crop = coverRect(bounds.width, bounds.height);
+      let crop = portraitRect(shell.clientWidth, shell.clientHeight);
       let ready = false;
       let paintedFrame = -1;
       let poster: HTMLImageElement | undefined;
@@ -99,9 +99,9 @@ export default function HeroCursorTracker() {
 
       const resize = () => {
         bounds = hero.getBoundingClientRect();
-        const width = Math.max(1, Math.round(bounds.width));
-        const height = Math.max(1, Math.round(bounds.height));
-        crop = coverRect(width, height);
+        const width = Math.max(1, Math.round(shell.clientWidth));
+        const height = Math.max(1, Math.round(shell.clientHeight));
+        crop = portraitRect(width, height);
         fallback.style.backgroundSize = `${crop.width}px ${crop.height}px`;
         fallback.style.backgroundPosition = `${crop.x}px ${crop.y}px`;
         const pixelWidth = Math.round(width * pixelRatio());
@@ -136,6 +136,7 @@ export default function HeroCursorTracker() {
 
       resize();
       resizeObserver.observe(hero);
+      resizeObserver.observe(shell);
       visibilityObserver.observe(hero);
       hero.addEventListener("pointerenter", enterHero);
       hero.addEventListener("pointermove", setPointerTarget, { passive: true });

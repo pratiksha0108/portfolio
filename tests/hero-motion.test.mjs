@@ -9,10 +9,20 @@ const source = readFileSync(new URL('../components/hero-motion.ts', import.meta.
 const code = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 },
 }).outputText;
-const { poseFrame, spriteFrame, NEUTRAL_FRAME, PATCH, SHEET_COUNT, MOTION_FRAMES, POSE_PATHS, damp, coverRect, responsiveAxis, advancePose, preferredAxis } =
+const { poseFrame, spriteFrame, NEUTRAL_FRAME, PATCH, SHEET_COUNT, MOTION_FRAMES, POSE_PATHS, damp, coverRect, portraitRect, responsiveAxis, advancePose, preferredAxis } =
   await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 
 const near = (a, b, epsilon = 1e-9) => assert.ok(Math.abs(a - b) < epsilon, `${a} != ${b}`);
+
+test('portrait crop centers the character and covers narrow and desktop frames', () => {
+  for (const [width, height] of [[465, 560], [310, 409], [390, 520]]) {
+    const crop = portraitRect(width, height);
+    near(crop.x + 640 * crop.width / 1280, width / 2);
+    assert.ok(crop.x <= -8 && crop.y <= -8);
+    assert.ok(crop.x + crop.width >= width + 8);
+    assert.ok(crop.y + crop.height >= height + 8);
+  }
+});
 
 test('every intermediate cursor position selects exactly one complete captured pose', () => {
   for (const axis of ['horizontal', 'vertical']) {

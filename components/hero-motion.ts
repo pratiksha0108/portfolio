@@ -81,3 +81,14 @@ export function coverRect(width: number, height: number) {
     height: drawHeight,
   };
 }
+
+// Frame the original animated character rather than the full skyline.
+export function portraitRect(width: number, height: number) {
+  const scale = Math.max((width + 16) / 520, (height + 16) / 560);
+  return {
+    x: (width - 1280 * scale) / 2,
+    y: height - 720 * scale + 8,
+    width: 1280 * scale,
+    height: 720 * scale,
+  };
+}
