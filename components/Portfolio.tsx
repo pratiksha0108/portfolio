@@ -238,7 +238,6 @@ export default function Portfolio() {
   const [activeStory, setActiveStory] = useState(productStories[0].id);
   const [selectedProject, setSelectedProject] = useState<FeaturedProject | null>(null);
   const [commandOpen, setCommandOpen] = useState(false);
-  const [productLens, setProductLens] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
@@ -298,7 +297,7 @@ export default function Portfolio() {
   const selectedStory = productStories.find((story) => story.id === activeStory) ?? productStories[0];
 
   return (
-    <main className={`portfolio-shell ${productLens ? "is-product-lens" : ""}`}>
+    <main className="portfolio-shell">
       <div className="scroll-progress" aria-hidden="true"><i style={{ transform: `scaleX(${scrollProgress})` }} /></div>
 
       <header className="site-header">
@@ -320,9 +319,6 @@ export default function Portfolio() {
         </nav>
 
         <div className="header-actions">
-          <button type="button" className={`lens-toggle ${productLens ? "is-active" : ""}`} onClick={() => setProductLens((active) => !active)} aria-pressed={productLens}>
-            <span className="lens-dot" /> Product lens
-          </button>
           <button type="button" className="command-trigger" onClick={() => setCommandOpen(true)} aria-label="Open quick navigation">
             <span>⌘</span>K
           </button>
@@ -367,9 +363,6 @@ export default function Portfolio() {
           <span>Scroll to explore</span><i>↓</i>
         </a>
 
-        <div className="lens-note lens-note-hero" aria-hidden="true">
-          <span>01</span> The hero behaves like a product: interaction creates immediate feedback.
-        </div>
       </section>
 
       <section id="product-loop" className="product-loop-section section-pad">
@@ -392,7 +385,6 @@ export default function Portfolio() {
           ))}
         </div>
         <div className="loop-connector" aria-hidden="true"><i /></div>
-        <div className="lens-note lens-note-loop" aria-hidden="true"><span>02</span> Each capability is tied to a behavior and proof, not a keyword cloud.</div>
       </section>
 
       <section id="work" className="work-section section-pad">
@@ -429,7 +421,6 @@ export default function Portfolio() {
             </article>
           ))}
         </div>
-        <div className="lens-note lens-note-work" aria-hidden="true"><span>03</span> The portfolio demonstrates prototyping instead of merely claiming it.</div>
       </section>
 
       <section id="stories" className="stories-section section-pad">
@@ -475,7 +466,6 @@ export default function Portfolio() {
             </div>
           </article>
         </div>
-        <div className="lens-note lens-note-stories" aria-hidden="true"><span>04</span> Confidentiality is a constraint, not an excuse to hide decision quality.</div>
       </section>
 
       <section className="experiments-section section-pad">
