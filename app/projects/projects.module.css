@@ -24,3 +24,33 @@
 .footer{border-color:#403647}
 @media(max-width:760px){.featured{padding:24px;gap:28px}.featured h2{font-size:38px}.card{padding:24px}.experiment{box-shadow:5px 5px 0 #f0a6d2}.header{padding-top:50px}}
 @media(prefers-reduced-motion:reduce){.card{transition:none}.card:hover{transform:none}}
+
+/* Route-scoped light collection. Individual project apps are unchanged. */
+.page{max-width:none;min-height:100svh;margin:0;padding:32px max(28px,calc((100% - 1184px)/2)) 70px;background:#fffdfb;color:#211729}
+.nav a,.footer a{color:#6926bd}
+.nav a{padding:10px 0}
+.header{padding-top:66px}
+.header>p:last-child{color:#65586d}
+.eyebrow,.featured .eyebrow{color:#783289}
+.featured{background:#f0e7fb;border-color:#dbc8ee}
+.featured h2 a{color:#281637}
+.featured p{color:#5f4b6e}
+.featured .note{color:#6e5a78}
+.tags span{color:#614a71;border-color:#cbb7da;background:#ffffff66}
+.links a{color:#6220a8;font-weight:600}
+.links .primary{color:#fff;background:#7026e8;transition:background 180ms ease,transform 180ms ease}
+.links .primary:hover{background:#5718bd;transform:translateY(-2px)}
+.experiment{background:#fae1ef;color:#402140;border:1px solid #eabbd7;box-shadow:8px 8px 0 #ddc8ed}
+.experiment span{color:#723360}
+.experiment p{color:#704b67}
+.card{background:#f6effb;border-color:#e0d1eb}
+.card:nth-child(even){background:#fcf0f6;border-color:#ead1df}
+.card:hover{border-color:#b081d1}
+.card h3{font-size:25px;line-height:1.25;letter-spacing:-.025em}
+.card h3 a{font-size:inherit;color:#2c1c37}
+.card p{color:#625269}
+.card .links a:not(.primary){color:#6220a8}
+.footer{border-color:#e0d1e7}
+.page a:focus-visible{outline-color:#7026e8}
+@media(max-width:760px){.page{padding:24px 20px 50px}.header{padding-top:40px}.experiment{box-shadow:5px 5px 0 #ddc8ed}}
+@media(prefers-reduced-motion:reduce){.links .primary{transition:none}.links .primary:hover{transform:none}}
